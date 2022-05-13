@@ -18,3 +18,8 @@ jobs:
       - name: GCC Compile wsa.cpp to wsa.dll
         continue-on-error: false
         run: "gcc -shared -o wsa.dll wsa.cpp -lWs2_32"
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: wsa-win-mingw-x64
+          path: ./wsa.dll
