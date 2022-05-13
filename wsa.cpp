@@ -69,8 +69,15 @@ extern "C" {
     }
 
     __declspec(dllexport)
-    int socketSend(SOCKET s, const char* message) {
+    int socketSendString(SOCKET s, const char* message) {
         if (send(s, message, strlen(message), 0) < 0)
+            return WSAGetLastError();
+        return 0;
+    }
+
+    __declspec(dllexport)
+    int socketSend(SOCKET s, const char* buf, unsigned int len) {
+        if (send(s, buf, len, 0) < 0)
             return WSAGetLastError();
         return 0;
     }
