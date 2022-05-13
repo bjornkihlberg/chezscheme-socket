@@ -1,4 +1,4 @@
-(load-shared-object "./wsa.dll")
+(load-shared-object "wsa.dll")
 
 (library (wsa)
   (export chunk-size
