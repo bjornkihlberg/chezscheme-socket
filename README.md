@@ -89,7 +89,7 @@ Begin by loading the shared object and then import the `wsa` library.
 
 ## Notes
 
-Right now this library only wraps the Windows Socket API (winsock). Some future work includes:
+Right now this library only wraps some basic functionality in the Windows Socket API (winsock). I won't go far beyond this except a few things:
 
 - Implement non-blocking receive procedures.
 - Maybe use custom binary ports.
