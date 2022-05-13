@@ -32,6 +32,9 @@ Begin by loading the shared object and then import the `wsa` library.
 ; Note: receive-client blocks the running thread until a client has been received!
 (define client (receive-client server)) ; Returns a socket
 
+; Close a socket when you're done with it.
+(close-socket server)
+
 ; Send data on a socket with send or send-string.
 ; Note: send takes a bytevector while send-string takes a string.
 (send-string client "Hello, client!\n")
@@ -46,11 +49,10 @@ Begin by loading the shared object and then import the `wsa` library.
 ;  chunk-size with a bigger number.
 (receive-string client)
 
-; Close a socket when you're done with it.
-(close-socket server)
+(close-socket client)
 
 ; Unload the Windows Socket API with when you're done with it.
-(cleanup server)
+(cleanup)
 ```
 
 ### WSA Client example
@@ -76,7 +78,7 @@ Begin by loading the shared object and then import the `wsa` library.
 (close-socket server)
 
 ; Unload the Windows Socket API with when you're done with it.
-(cleanup server)
+(cleanup)
 ```
 
 ## Thread safety
