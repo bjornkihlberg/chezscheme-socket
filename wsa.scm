@@ -6,6 +6,7 @@
           create-server
           receive
           receive-client
+          receive-string
           send
           send-string
           server-listen)
@@ -98,4 +99,6 @@
             (lambda (np)
               (assert np)
               (assert (zero? (socketReceive socket p n np)))
-              (foreign-ptr->bytevector p (foreign-ref 'int np 0)))))))))
+              (foreign-ptr->bytevector p (foreign-ref 'int np 0))))))))
+  (define (receive-string socket)
+    (utf8->string (receive socket))))
