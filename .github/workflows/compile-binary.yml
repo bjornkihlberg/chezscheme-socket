@@ -1,0 +1,20 @@
+name: Compile Binary
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build x64 for Windows
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up MinGW
+        uses: egor-tensin/setup-mingw@v2
+        with:
+          platform: x64
+      - name: GCC Compile wsa.cpp to wsa.dll
+        continue-on-error: false
+        run: "gcc -shared -o wsa.dll wsa.cpp -lWs2_32"
