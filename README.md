@@ -28,6 +28,9 @@ Begin by loading the shared object and then import the `wsa` library.
 ; Start listening for incoming client connections.
 (server-listen server 3) ; Allow up to 3 pending clients waiting for connection
 
+; Check if there are any pending clients
+(receiving? server) ; Returns #t means receive-client will return immediately
+
 ; Accept an incoming client connection.
 ; Note: receive-client blocks the running thread until a client has been received!
 (define client (receive-client server)) ; Returns a socket
@@ -38,6 +41,9 @@ Begin by loading the shared object and then import the `wsa` library.
 ; Send data on a socket with send or send-string.
 ; Note: send takes a bytevector while send-string takes a string.
 (send-string client "Hello, client!\n")
+
+; Check if there is incoming information
+(receiving? client) ; Returns #t means receive-string will return immediately
 
 ; Receive data on a socket with receive or receive-string.
 ; Note:
@@ -63,6 +69,9 @@ Begin by loading the shared object and then import the `wsa` library.
 ; Send data on a socket with send or send-string.
 ; Note: send takes a bytevector while send-string takes a string.
 (send-string server "Hello, server!\n")
+
+; Check if there is incoming information
+(receiving? server) ; Returns #t means receive-string will return immediately
 
 ; Receive data on a socket with receive or receive-string.
 ; Note:
@@ -93,7 +102,6 @@ Begin by loading the shared object and then import the `wsa` library.
 
 Right now this library only wraps some basic functionality in the Windows Socket API (winsock). I won't go far beyond this except a few things:
 
-- Implement non-blocking receive procedures.
 - Maybe use custom binary ports.
 - Don't use C++, wrap **Ws2_32.dll** directly in **wsa.scm**.
 - Implement a Linux version.

@@ -83,6 +83,21 @@ extern "C" {
     }
 
     __declspec(dllexport)
+    int socketIsReadReady(SOCKET s, char* isReadReady) {
+        struct pollfd x;
+        x.fd = s;
+        x.events = POLLRDNORM;
+        x.revents = 0;
+        int result = WSAPoll(&x, 1, 0);
+        if (result == SOCKET_ERROR) {
+            *isReadReady = 0;
+            return WSAGetLastError();
+        }
+        *isReadReady = result;
+        return 0;
+    }
+
+    __declspec(dllexport)
     int socketReceive(SOCKET s, char* reply, int len, int* recv_size) {
         if ((*recv_size = recv(s, reply, len, 0)) == SOCKET_ERROR)
             return WSAGetLastError();

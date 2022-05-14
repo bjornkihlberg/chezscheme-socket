@@ -7,6 +7,7 @@
           receive
           receive-client
           receive-string
+          receiving?
           send
           send-string
           server-listen)
@@ -51,6 +52,8 @@
     (foreign-procedure "socketSend"
       (uptr uptr unsigned-int)
       int))
+  (define socketIsReadReady
+    (foreign-procedure "socketIsReadReady" (uptr uptr) int))
   (define socketReceive
     (foreign-procedure "socketReceive"
       (uptr uptr int uptr)
@@ -101,4 +104,11 @@
               (wsa-success 'receive (socketReceive socket p n np))
               (foreign-ptr->bytevector p (foreign-ref 'int np 0))))))))
   (define (receive-string socket)
-    (utf8->string (receive socket))))
+    (utf8->string (receive socket)))
+  (define (receiving? socket)
+    (call-with-foreign-alloc-ptr
+      1
+      (lambda (p)
+        (foreign-set! 'unsigned-8 p 0 0)
+        (wsa-success 'receiving? (socketIsReadReady socket p))
+        (positive? (foreign-ref 'unsigned-8 p 0))))))
