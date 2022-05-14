@@ -5,6 +5,9 @@
           close-socket
           connect
           create-server
+          open-socket-input-port
+          open-socket-input/output-port
+          open-socket-output-port
           receive
           receive-client
           receiving?
@@ -118,4 +121,45 @@
       (lambda (p)
         (foreign-set! 'unsigned-8 p 0 0)
         (wsa-success 'receiving? (socketIsReadReady socket p))
-        (positive? (foreign-ref 'unsigned-8 p 0))))))
+        (positive? (foreign-ref 'unsigned-8 p 0)))))
+  (define (open-socket-input-port socket)
+    (define (r! dst start n)
+      (let loop ([i 0])
+        (when (> n i)
+          (let* ([src (parameterize ([chunk-size (- n i)])
+                        (receive socket))]
+                 [l (bytevector-length src)])
+            (bytevector-copy! src 0 dst (+ start i) l)
+            (loop (+ i l)))))
+      n)
+    (make-custom-binary-input-port "socket-input-port" r! #f #f
+      (delay (close-socket socket))))
+  (define (open-socket-output-port socket)
+    (define (w! src start n)
+      (if (eq? n (bytevector-length src))
+          (send socket src)
+          (let ([dst (make-bytevector n)])
+            (bytevector-copy! src start dst 0 n)
+            (send socket dst)))
+      n)
+    (make-custom-binary-output-port "socket-output-port" w! #f
+      #f (delay (close-socket socket))))
+  (define (open-socket-input/output-port socket)
+    (define (r! dst start n)
+      (let loop ([i 0])
+        (when (> n i)
+          (let* ([src (parameterize ([chunk-size (- n i)])
+                        (receive socket))]
+                 [l (bytevector-length src)])
+            (bytevector-copy! src 0 dst (+ start i) l)
+            (loop (+ i l)))))
+      n)
+    (define (w! src start n)
+      (if (eq? n (bytevector-length src))
+          (send socket src)
+          (let ([dst (make-bytevector n)])
+            (bytevector-copy! src start dst 0 n)
+            (send socket dst)))
+      n)
+    (make-custom-binary-input/output-port "socket-input/output-port" r! w! #f #f
+      (delay (close-socket socket)))))

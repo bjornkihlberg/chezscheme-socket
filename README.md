@@ -76,7 +76,7 @@ Begin by loading the shared object and then import the `wsa` library.
 (receiving? server) ; returns #t means receive will return immediately
 
 ; Check how many bytes have been received.
-(bytes-received client)
+(bytes-received server)
 
 ; Receive data on a socket.
 ; Note:
@@ -94,6 +94,18 @@ Begin by loading the shared object and then import the `wsa` library.
 (cleanup)
 ```
 
+### Ports
+
+Create binary ports on sockets with the following procedures:
+
+```scheme
+(open-socket-input-port socket)
+(open-socket-input/output-port socket)
+(open-socket-output-port socket)
+```
+
+Note that using `get-bytevector-n` will block the thread until the socket has received `n` bytes. `get-bytevector-all` will always cause the thread to be blocked forever. It's advisable to check how many bytes are available with `bytes-received` applied on the socket (not the port) before getting data from the port.
+
 ## Thread safety
 
 - ⚠ The receive procedures **must not** be invoked at the same for the same socket time on different threads.
@@ -106,6 +118,5 @@ Begin by loading the shared object and then import the `wsa` library.
 
 Right now this library only wraps some basic functionality in the Windows Socket API (winsock). I won't go far beyond this except a few things:
 
-- Maybe use custom binary ports.
 - Don't use C++, wrap **Ws2_32.dll** directly in **wsa.scm**.
 - Implement a Linux version.
