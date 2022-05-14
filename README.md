@@ -29,11 +29,11 @@ Begin by loading the shared object and then import the `wsa` library.
 (server-listen server 3) ; Allow up to 3 pending clients waiting for connection
 
 ; Check if there are any pending clients
-(receiving? server) ; Returns #t means receive-client will return immediately
+(receiving? server) ; returns #t means receive-client will return immediately
 
 ; Accept an incoming client connection.
 ; Note: receive-client blocks the running thread until a client has been received!
-(define client (receive-client server)) ; Returns a socket
+(define client (receive-client server)) ; returns a socket
 
 ; Close a socket when you're done with it.
 (close-socket server)
@@ -42,8 +42,11 @@ Begin by loading the shared object and then import the `wsa` library.
 ; Note: send takes a bytevector while send-string takes a string.
 (send-string client "Hello, client!\n")
 
-; Check if there is incoming information
-(receiving? client) ; Returns #t means receive will return immediately
+; Check if there is incoming information.
+(receiving? client) ; returns #t means receive will return immediately
+
+; Check how many bytes have been received.
+(bytes-received client)
 
 ; Receive data on a socket.
 ; Note:
@@ -69,8 +72,11 @@ Begin by loading the shared object and then import the `wsa` library.
 ; Note: send takes a bytevector while send-string takes a string.
 (send-string server "Hello, server!\n")
 
-; Check if there is incoming information
-(receiving? server) ; Returns #t means receive will return immediately
+; Check if there is incoming information.
+(receiving? server) ; returns #t means receive will return immediately
+
+; Check how many bytes have been received.
+(bytes-received client)
 
 ; Receive data on a socket.
 ; Note:

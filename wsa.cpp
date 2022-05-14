@@ -83,6 +83,13 @@ extern "C" {
     }
 
     __declspec(dllexport)
+    int socketBytesReady(SOCKET s, u_long* bytesReady) {
+        if (ioctlsocket(s, FIONREAD, bytesReady) == SOCKET_ERROR)
+            return WSAGetLastError();
+        return 0;
+    }
+
+    __declspec(dllexport)
     int socketIsReadReady(SOCKET s, char* isReadReady) {
         struct pollfd x;
         x.fd = s;

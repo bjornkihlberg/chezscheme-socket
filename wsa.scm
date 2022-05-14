@@ -1,5 +1,6 @@
 (library (wsa)
-  (export chunk-size
+  (export bytes-received
+          chunk-size
           cleanup
           close-socket
           connect
@@ -51,6 +52,8 @@
     (foreign-procedure "socketSend"
       (uptr uptr unsigned-int)
       int))
+  (define socketBytesReady
+    (foreign-procedure "socketBytesReady" (uptr uptr) int))
   (define socketIsReadReady
     (foreign-procedure "socketIsReadReady" (uptr uptr) int))
   (define socketReceive
@@ -102,6 +105,13 @@
             (lambda (np)
               (wsa-success 'receive (socketReceive socket p n np))
               (foreign-ptr->bytevector p (foreign-ref 'int np 0))))))))
+  (define (bytes-received socket)
+    (call-with-foreign-alloc-ptr
+      (foreign-sizeof 'unsigned-32)
+      (lambda (p)
+        (foreign-set! 'unsigned-32 p 0 0)
+        (wsa-success 'bytes-received (socketBytesReady socket p))
+        (foreign-ref 'unsigned-32 p 0))))
   (define (receiving? socket)
     (call-with-foreign-alloc-ptr
       1
