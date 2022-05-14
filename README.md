@@ -43,17 +43,16 @@ Begin by loading the shared object and then import the `wsa` library.
 (send-string client "Hello, client!\n")
 
 ; Check if there is incoming information
-(receiving? client) ; Returns #t means receive-string will return immediately
+(receiving? client) ; Returns #t means receive will return immediately
 
-; Receive data on a socket with receive or receive-string.
+; Receive data on a socket.
 ; Note:
-;  receive returns a bytevector while receive-string returns a string.
-;  These procedures blocks the running thread until a message has been received.
-;  These procedures consumes data on a socket up to a number of bytes as
-;  specified by the parameter chunk-size. Default is 1024 bytes. If the message is
-;  incomplete, invoke receive again to get the rest of the message or parameterize
-;  chunk-size with a bigger number.
-(receive-string client)
+;  This procedure blocks the running thread until a message has been received.
+;  receive consumes data on a socket up to a number of bytes as specified by the
+;  parameter chunk-size. Default is 1024 bytes. If the message is incomplete,
+;  invoke receive again to get the rest of the message or parameterize chunk-size
+;  with a bigger number.
+(receive client) ; returns a bytevector
 
 (close-socket client)
 
@@ -71,17 +70,16 @@ Begin by loading the shared object and then import the `wsa` library.
 (send-string server "Hello, server!\n")
 
 ; Check if there is incoming information
-(receiving? server) ; Returns #t means receive-string will return immediately
+(receiving? server) ; Returns #t means receive will return immediately
 
-; Receive data on a socket with receive or receive-string.
+; Receive data on a socket.
 ; Note:
-;  receive returns a bytevector while receive-string returns a string.
-;  These procedures blocks the running thread until a message has been received.
-;  These procedures consumes data on a socket up to a number of bytes as
-;  specified by the parameter chunk-size. Default is 1024 bytes. If the message is
-;  incomplete, invoke receive again to get the rest of the message or parameterize
-;  chunk-size with a bigger number.
-(receive-string server)
+;  This procedure blocks the running thread until a message has been received.
+;  receive consumes data on a socket up to a number of bytes as specified by the
+;  parameter chunk-size. Default is 1024 bytes. If the message is incomplete,
+;  invoke receive again to get the rest of the message or parameterize chunk-size
+;  with a bigger number.
+(receive server) ; returns a bytevector
 
 ; Close a socket when you're done with it.
 (close-socket server)

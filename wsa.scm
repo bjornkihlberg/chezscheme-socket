@@ -6,7 +6,6 @@
           create-server
           receive
           receive-client
-          receive-string
           receiving?
           send
           send-string
@@ -103,8 +102,6 @@
             (lambda (np)
               (wsa-success 'receive (socketReceive socket p n np))
               (foreign-ptr->bytevector p (foreign-ref 'int np 0))))))))
-  (define (receive-string socket)
-    (utf8->string (receive socket)))
   (define (receiving? socket)
     (call-with-foreign-alloc-ptr
       1
