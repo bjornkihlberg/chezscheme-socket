@@ -11,6 +11,8 @@
           send-string
           server-listen)
   (import (chezscheme))
+  (define (wsa-success n x)
+    (unless (zero? x) (assertion-violationf n "code ~a" x)))
   (define (call-with-foreign-alloc-ptr n k)
     (let ([p #f])
       (dynamic-wind
@@ -57,48 +59,46 @@
     (call-with-foreign-alloc-ptr
       (foreign-sizeof 'uptr)
       (lambda (ptr)
-        (assert (zero? (socketBind port ptr)))
+        (wsa-success 'create-server (socketBind port ptr))
         (foreign-ref 'uptr ptr 0))))
   (define (server-listen server back-log)
     (assert (positive? back-log))
-    (assert (zero? (socketListen server back-log)))
-    (void))
+    (wsa-success 'server-listen (socketListen server back-log)))
   (define (receive-client server)
     (call-with-foreign-alloc-ptr
       (foreign-sizeof 'uptr)
       (lambda (ptr)
-        (assert (zero? (socketAccept server ptr)))
+        (wsa-success 'receive-client (socketAccept server ptr))
         (foreign-ref 'uptr ptr 0))))
   (define (connect server-address port)
     (call-with-foreign-alloc-ptr
       (foreign-sizeof 'uptr)
       (lambda (ptr)
-        (assert (zero? (socketConnect server-address port ptr)))
+        (wsa-success
+          'connect
+          (socketConnect server-address port ptr))
         (foreign-ref 'uptr ptr 0))))
   (define (close-socket socket)
-    (assert (zero? (socketClose socket)))
-    (void))
-  (define (cleanup) (assert (zero? (socketCleanup))) (void))
+    (wsa-success 'close-socket (socketClose socket)))
+  (define (cleanup) (wsa-success 'cleanup (socketCleanup)))
   (define (send-string socket message)
-    (assert (zero? (socketSendString socket message)))
-    (void))
+    (wsa-success
+      'send-string
+      (socketSendString socket message)))
   (define (send socket bytevector)
     (call-bytevector-with-foreign-ptr
       bytevector
       (lambda (ptr len)
-        (assert (zero? (socketSend socket ptr len)))
-        (void))))
+        (wsa-success 'send (socketSend socket ptr len)))))
   (define (receive socket)
     (let ([n (chunk-size)])
       (call-with-foreign-alloc-ptr
         n
         (lambda (p)
-          (assert p)
           (call-with-foreign-alloc-ptr
             (foreign-sizeof 'int)
             (lambda (np)
-              (assert np)
-              (assert (zero? (socketReceive socket p n np)))
+              (wsa-success 'receive (socketReceive socket p n np))
               (foreign-ptr->bytevector p (foreign-ref 'int np 0))))))))
   (define (receive-string socket)
     (utf8->string (receive socket))))
