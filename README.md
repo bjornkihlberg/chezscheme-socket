@@ -4,49 +4,40 @@ A simple TCP library for Chez Scheme
 
 ---
 
-Requires **wsa.dll** Can either be found in **wsa-win-mingw-x64.zip** under [latest release](https://github.com/bjornkihlberg/chezscheme-socket/releases/tag/latest) or compiled directly from **wsa.cpp**. The `wsa` library is specifically for use with Windows. I haven't yet implemented a socket library for Linux.
-
 **Hint:** If you're using Windows you can use the excellent tool [Hercules](https://www.hw-group.com/software/hercules-setup-utility) for debugging your socket applications.
 
 ## Quickstart
 
-Begin by loading the shared object and then import the `wsa` library.
+### Winsock2 Server example
 
 ```scheme
-(load-shared-object "wsa.dll")
-```
+(import (winsock2))
 
-> 💡 I decided to try out not loading the .dll-file from within **wsa.scm** to allow dependent projects to decide how to organize their .dll-files.
+(wsa-startup 2 2)
 
-### WSA Server example
-
-```scheme
-(import (wsa))
-
-(define server (create-server 8000)) ; Create a server
+; Create a server.
+(define server (socket AF_INET SOCK_STREAM 0))
+(bind s AF_INET INADDR_ANY (htons 8000))
 
 ; Start listening for incoming client connections.
-(server-listen server 3) ; Allow up to 3 pending clients waiting for connection
+(listen server 3) ; Allow up to 3 pending clients waiting for connection
 
 ; Check if there are any pending clients
-(receiving? server) ; returns #t means receive-client will return immediately
+(positive? (wsa-poll server POLLRDNORM 1 0)) ; returns #t means accept will return immediately
 
 ; Accept an incoming client connection.
-; Note: receive-client blocks the running thread until a client has been received!
-(define client (receive-client server)) ; returns a socket
+; Note: accept blocks the running thread until a client has been received!
+(define client (accept server)) ; returns a socket
 
 ; Close a socket when you're done with it.
 (close-socket server)
 
 ; Send data on a socket with send or send-string.
 ; Note: send takes a bytevector while send-string takes a string.
-(send-string client "Hello, client!\n")
+(send client (string->utf8 "Hello, client!\n") 0)
 
 ; Check if there is incoming information.
-(receiving? client) ; returns #t means receive will return immediately
-
-; Check how many bytes have been received.
-(bytes-received client)
+(positive? (wsa-poll client POLLRDNORM 1 0)) ; returns #t means recv will return immediately
 
 ; Receive data on a socket.
 ; Note:
@@ -55,7 +46,7 @@ Begin by loading the shared object and then import the `wsa` library.
 ;  parameter chunk-size. Default is 1024 bytes. If the message is incomplete,
 ;  invoke receive again to get the rest of the message or parameterize chunk-size
 ;  with a bigger number.
-(receive client) ; returns a bytevector
+(utf8->string (recv client 0))
 
 (close-socket client)
 
@@ -63,20 +54,23 @@ Begin by loading the shared object and then import the `wsa` library.
 (cleanup)
 ```
 
-### WSA Client example
+### Winsock2 Client example
 
 ```scheme
-(define server (wsa.connect "127.0.0.1" 8000)) ; Connect to a server
+(import (winsock2))
+
+(wsa-startup 2 2)
+
+; Connect to a server.
+(define server (socket AF_INET SOCK_STREAM 0))
+(connect s AF_INET (inet_addr "127.0.0.1") (htons 8000))
 
 ; Send data on a socket with send or send-string.
 ; Note: send takes a bytevector while send-string takes a string.
-(send-string server "Hello, server!\n")
+(send server (string->utf8 "Hello, server!\n") 0)
 
 ; Check if there is incoming information.
-(receiving? server) ; returns #t means receive will return immediately
-
-; Check how many bytes have been received.
-(bytes-received server)
+(positive? (wsa-poll server POLLRDNORM 1 0)) ; returns #t means recv will return immediately
 
 ; Receive data on a socket.
 ; Note:
@@ -85,7 +79,7 @@ Begin by loading the shared object and then import the `wsa` library.
 ;  parameter chunk-size. Default is 1024 bytes. If the message is incomplete,
 ;  invoke receive again to get the rest of the message or parameterize chunk-size
 ;  with a bigger number.
-(receive server) ; returns a bytevector
+(utf8->string (recv server 0))
 
 ; Close a socket when you're done with it.
 (close-socket server)
@@ -94,29 +88,14 @@ Begin by loading the shared object and then import the `wsa` library.
 (cleanup)
 ```
 
-### Ports
+## ⚠ Thread safety
 
-Create binary ports on sockets with the following procedures:
-
-```scheme
-(open-socket-input-port socket)
-(open-socket-input/output-port socket)
-(open-socket-output-port socket)
-```
-
-Note that using `get-bytevector-n` will block the thread until the socket has received `n` bytes. `get-bytevector-all` will always cause the thread to be blocked forever. It's advisable to check how many bytes are available with `bytes-received` applied on the socket (not the port) before getting data from the port.
-
-## Thread safety
-
-- ⚠ The receive procedures **must not** be invoked at the same for the same socket time on different threads.
-
-  The same goes for the send procedures.
-
-- A receive procedure and a send procedure can however safely be invoked at the same time for the same socket on different threads without issues.
+-  `recv` **must not** be invoked at the same for the same socket time on different threads. The same goes for `send`.
+- `recv` and `send` can however safely be invoked at the same time for the same socket on different threads without issues.
 
 ## Notes
 
-Right now this library only wraps some basic functionality in the Windows Socket API (winsock). I won't go far beyond this except a few things:
+Right now this library only wraps some basic functionality in the Windows Socket API (winsock2). I won't go far beyond this except a few things:
 
-- Don't use C++, wrap **Ws2_32.dll** directly in **wsa.scm**.
-- Implement a Linux version.
+- ~~Don't use C++, wrap **Ws2_32.dll** directly in **wsa.scm**~~ Done
+- Implement a Linux version
